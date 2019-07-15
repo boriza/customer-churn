@@ -30,9 +30,7 @@ ws = Workspace.from_config()
 #%% [markdown]
 #Setup experiemnt in AML service
 from azureml.core.experiment import Experiment
-experiment = Experiment(workspace=ws, name='telco-customer-churn')
-
-run.log(name="message", value="Experiment started")
+experiment = Experiment(workspace=ws, name='telco-customer-churn-local')
 
 #%% [markdown]
 # Setup context 
@@ -40,6 +38,7 @@ from azureml.core import Run
 from azureml.core import ScriptRunConfig
 
 run = Run.get_context()
+run.log(name="message", value="Experiment started")
 
 #%% [markdown]
 from IPython.display import Image
@@ -59,13 +58,7 @@ df = pd.read_csv('telco-data.csv')
 
 df.head(3)
 yc = df["churn"].value_counts()
-sns.barplot(yc.index, yc.values)
-
-
-y_True = df["churn"][df["churn"] == True]
-print ("Churn Percentage = "+str( (y_True.shape[0] / df["churn"].shape[0]) * 100 ))
-
-#%% [markdown]
+sns.barplot(yc.index, yc.values)#%% [markdown]
 #Descriptive Analysis
 df.describe()
 
@@ -155,7 +148,7 @@ title = 'SVM'
 plt.title(title);
 
 plt.savefig('plt.png')
-run.log_image("Heatmap", path ="plt.png")
+run.log_image("SVM", path ="plt.png")
 
 #%% [markdown]
 
@@ -163,6 +156,9 @@ random_forest_conf_matrix = metrics.confusion_matrix(y, stratified_cv(X, y, ense
 sns.heatmap(random_forest_conf_matrix, annot=True,  fmt='');
 title = 'Random Forest'
 plt.title(title);
+
+plt.savefig('plt.png')
+run.log_image("Random Forest", path ="plt.png")
 
 #%% [markdown]
 k_neighbors_conf_matrix   = metrics.confusion_matrix(y, stratified_cv(X, y, neighbors.KNeighborsClassifier))
@@ -175,6 +171,9 @@ logistic_reg_conf_matrix  = metrics.confusion_matrix(y, stratified_cv(X, y, line
 sns.heatmap(logistic_reg_conf_matrix, annot=True,  fmt='');
 title = 'Logistic Regression'
 plt.title(title);
+
+plt.savefig('plt.png')
+run.log_image("Image", path ="plt.png")
 
 #%% [markdown]
 #Classification report 
@@ -199,11 +198,6 @@ print (gbc.feature_importances_)
 feat_importances = pd.Series(gbc.feature_importances_, index=df.columns)
 feat_importances = feat_importances.nlargest(19)
 plt = feat_importances.plot(kind='barh' , figsize=(10,10)) 
-
-#%% [markdown]
-#Save logs to the service
-run.log(name="message", value="gbc.feature_importances_")
-run.log_image("Feature importance",plot = plt)
 
 #%% [markdown]
 #Save model to disk
